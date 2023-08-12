@@ -29,7 +29,18 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(height: 40,),
             Image(image: AssetImage("assets/images/new.jpg",),
             fit: BoxFit.fitWidth,height:200,),
-            
+            TextFormField(
+              decoration: InputDecoration(
+                labelStyle: TextStyle(
+                  color: Colors.black
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color.fromARGB(255, 237, 105, 29),width: 2)
+                ),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color.fromARGB(255, 237, 105, 29),width: 2)),
+                errorBorder: OutlineInputBorder(borderSide: BorderSide(color: Color.fromARGB(255, 237, 105, 29),width: 2))
+              ),
+            )
           ],
         )
        ), 
