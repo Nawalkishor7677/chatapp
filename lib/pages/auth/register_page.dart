@@ -1,36 +1,43 @@
-import 'package:chatapp_firebase/pages/auth/register_page.dart';
-import 'package:chatapp_firebase/shared/constants.dart';
+import 'package:chatapp_firebase/helper/helper_function.dart';
+import 'package:chatapp_firebase/pages/auth/login_page.dart';
+import 'package:chatapp_firebase/pages/home_page.dart';
+import 'package:chatapp_firebase/service/auth_service.dart';
 import 'package:chatapp_firebase/widgets/widgets.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final formkey=GlobalKey<FormState>();
-  String Email="";
-  String Password="";
+class _RegisterPageState extends State<RegisterPage> {
+  bool _isLoading = false;
+  final formKey = GlobalKey<FormState>();
+  String email = "";
+  String password = "";
+  String fullName = "";
+  AuthService authService = AuthService();
+
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-      // appBar: AppBar(
-      //   backgroundColor: Theme.of(context).primaryColor
-      // ),
-      body:SingleChildScrollView(
+    return Scaffold(
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                  color: Theme.of(context).primaryColor))
+          : SingleChildScrollView(
         child: Form(
-          key: formkey,
+          key: formKey,
           child: Column(
             children: [
               Padding(
                 padding: EdgeInsets.only(top: 28,bottom: 10),
                 child: Text("Groupie",style: TextStyle(fontSize: 22,fontWeight: FontWeight.w600),),
               ),
-              Text("Login now to see what they are talking",
+              Text("Create your account now to cchat and explore",
               style: TextStyle(fontSize: 16,
               fontWeight: FontWeight.normal,color: Colors.black54),),
               SizedBox(height: 40,),
@@ -48,22 +55,52 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color.fromARGB(255, 237, 105, 29),width: 2)),
                     errorBorder: OutlineInputBorder(borderSide: BorderSide(color: Color.fromARGB(255, 237, 105, 29),width: 2)),
-                 labelText: "Email",
-                 prefixIcon: Icon(Icons.email,color: Color.fromARGB(255, 237, 105, 29),),
+                 labelText: "Full Name",
+                 prefixIcon: Icon(Icons.person,color: Color.fromARGB(255, 237, 105, 29),),
                   ),
                   onChanged: (value) {
                setState(() {
-                 Email=value;
+                 fullName=value;
                });
                   },
-                 validator: (val) {
-                            return RegExp(
-                                        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                                    .hasMatch(val!)
-                                ? null
-                                : "Please enter a valid email";
+                validator: (value) {
+                  if(value!.isNotEmpty){
+                    return null;
                   }
+                  else {
+                    return "Name cannot be empty";
+                  }
+                },
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                    decoration: InputDecoration(
+                      labelStyle: TextStyle(
+                        color: Colors.black
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color.fromARGB(255, 237, 105, 29),width: 2)
+                      ),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color.fromARGB(255, 237, 105, 29),width: 2)),
+                      errorBorder: OutlineInputBorder(borderSide: BorderSide(color: Color.fromARGB(255, 237, 105, 29),width: 2)),
+                   labelText: "Email",
+                   prefixIcon: Icon(Icons.email,color: Color.fromARGB(255, 237, 105, 29),),
+                    ),
+                    onChanged: (value) {
+                 setState(() {
+                   email=value;
+                 });
+                    },
+                   validator: (val) {
+                              return RegExp(
+                                          r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                      .hasMatch(val!)
+                                  ? null
+                                  : "Please enter a valid email";
+                    }
+                  ),
               ),
                Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -91,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                   },
                    onChanged: (value) {
                     setState(() {
-                      Password=value;
+                      password=value;
                     });
                   },
                 ),
@@ -106,22 +143,22 @@ class _LoginPageState extends State<LoginPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))
                   ),
                   onPressed: (){
-                    login();
+                    register();
                   },
-                   child: Text("Sign in")),
+                   child: Text("Register")),
                ),
              ),
-             Text.rich(TextSpan(text:"Don't have an accont?",
+             Text.rich(TextSpan(text:"Alredy have a account?",
              style: TextStyle(
               color: Colors.black,fontSize: 14),
               children:[
                 TextSpan(
-                  text: "Register here",style: TextStyle(
+                  text: "Login now",style: TextStyle(
                     color: Colors.black,decoration: TextDecoration.underline,
                   ),
                   recognizer: TapGestureRecognizer()
                   ..onTap=() {
-                    nextScreen(context, RegisterPage());
+                    nextScreen(context, LoginPage());
                   }
                 )
               ])
@@ -129,11 +166,29 @@ class _LoginPageState extends State<LoginPage> {
               )
             ],
           ),
-        )
-       ), 
-      );
+        ) ,
+    ));
   }
-  login (){
-    if (formkey.currentState!.validate()) {}
+  register() async {
+    if (formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+      await authService
+          .registerUserWithEmailandPassword(fullName, email, password)
+          .then((value) async {
+        if (value == true) {
+          await HelperFunctons.saveUserLoggedInStatus(true);
+          await HelperFunctons.saveUserEmailSF(email);
+          await HelperFunctons.saveUserNameSF(fullName);
+          nextScreenReplace(context, const HomePage());
+        } else {
+          showSnackbar(context, Colors.red, value);
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      });
+    }
   }
 }
