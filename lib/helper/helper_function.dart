@@ -32,4 +32,8 @@ static String userEmailkey="USEREMAILKEY";
     return sf.getBool(userLoggedInkey);
   }
 
+  static getUserEmailFromSF() {}
+
+  static getUserNameFromSF() {}
+
 }
